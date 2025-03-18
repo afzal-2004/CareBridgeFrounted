@@ -23,7 +23,7 @@ export const DoctorDetails = () => {
   } = useContext(AppContext);
 
   const { id } = useParams();
-  console.log("This is The the id if seected Doctor ", id);
+  // console.log("This is The the id if seected Doctor ", id);
 
   useEffect(() => {
     axios.get(`${Backend_Url}/getDoctorlist`).then((res) => {

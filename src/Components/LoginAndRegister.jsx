@@ -198,7 +198,7 @@ export const Login = () => {
         <button
           type="submit"
           className="RegisterandLoginBtn"
-          onClick={() => setLogin(true)}
+          onClick={setLogin(true)}
         >
           Login
         </button>
