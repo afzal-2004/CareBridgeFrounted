@@ -128,7 +128,7 @@ export const Register = () => {
 
 export const Login = () => {
   const navigate = useNavigate();
-  const { data, setdata, setLogin, setProfile } = useContext(AppContext);
+  const { data, setdata, setProfile } = useContext(AppContext);
 
   const handleChange = (e) => {
     e.preventDefault();
@@ -195,11 +195,7 @@ export const Login = () => {
           />
         </div>
 
-        <button
-          type="submit"
-          className="RegisterandLoginBtn"
-          onClick={setLogin(true)}
-        >
+        <button type="submit" className="RegisterandLoginBtn">
           Login
         </button>
         <Link to="/register">
