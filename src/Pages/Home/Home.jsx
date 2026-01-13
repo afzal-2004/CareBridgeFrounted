@@ -1,20 +1,27 @@
 import Hedaderimage from "../../assets/frontend/header_img.png";
 import Footerimage from "../../assets/frontend/appointment_img.png";
-
 import { FaArrowRightLong } from "react-icons/fa6";
 import { specialityData } from "../../assets/frontend/assets";
 import { Link } from "react-router-dom";
 import { DoctorCard } from "../../Components/DoctorCard";
 import { useState, useEffect } from "react";
-import axios from "axios";
-import { Backend_Url } from "../../../public/contstant";
+import BaseApi from "../../Service/RequestApi";
 import Loader from "../../Components/Loader";
 export const Home = () => {
   const [Doctorsdata, setDoctorsdata] = useState([]);
+
+  const getAlllistofDoctor = async () => {
+    try {
+      const res = await BaseApi.GetAllDoctorList();
+      if (res.status == 201) {
+        setDoctorsdata(res.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
   useEffect(() => {
-    axios.get(`${Backend_Url}/getDoctorlist`).then((res) => {
-      setDoctorsdata(res.data);
-    });
+    getAlllistofDoctor();
   }, []);
   return (
     <div>

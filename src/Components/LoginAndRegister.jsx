@@ -7,6 +7,7 @@ import "./Components.css";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { Backend_Url } from "../../public/contstant.js";
+import BaseApi from "../Service/RequestApi.js";
 export const Register = () => {
   const navigate = useNavigate();
   const [Registerdata, setRegisterdata] = useState({
@@ -26,26 +27,24 @@ export const Register = () => {
       [e.target.name]: e.target.value,
     });
   };
-  const handleData = (e) => {
-    console.log(e);
+  const handleData = async (e) => {
     e.preventDefault();
 
-    axios
-      .post(`${Backend_Url}/Register`, Registerdata)
-      .then(() => {
+    try {
+      const res = await BaseApi.CustomerRegister(Registerdata);
+
+      if (res.status == 201) {
         toast.success("Register SuccessFully", {
           autoClose: 2000,
         });
         setTimeout(() => {
           navigate("/login");
         }, 1000);
-      })
-      .catch((e) => {
-        console.log(e);
-        toast.error("Something Went Wrong ");
-      });
-
-    console.log(Registerdata);
+      }
+    } catch (error) {
+      console.log(e);
+      toast.error("Something Went Wrong ");
+    }
   };
 
   return (
@@ -137,26 +136,28 @@ export const Login = () => {
       [e.target.name]: e.target.value,
     });
   };
-  const handleData = (e) => {
+  const handleData = async (e) => {
     e.preventDefault();
-    axios
-      .post(`${Backend_Url}/Login`, data)
-      .then((e) => {
-        handleChange;
 
-        const Token = e.data.token;
+    try {
+      const res = await BaseApi.CustomerLogin(data);
 
+      if (res.status == 201) {
+        const Token = res.data.token;
         Cookies.set("token", Token, { expires: 1 });
-        console.log(e);
-        toast.success(`${e.data?.message}`);
-        setProfile(e.data.finduser);
+        toast.success(`${res.data?.message}`);
+        setProfile(res.data.finduser);
+        localStorage.setItem("userdata", JSON.stringify(res.data.finduser));
+        localStorage.setItem("token", JSON.stringify(Token));
+
         setTimeout(() => {
           navigate("/");
         }, 1000);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Sommething Went Wrong ");
+    }
   };
 
   return (

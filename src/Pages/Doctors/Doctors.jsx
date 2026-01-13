@@ -1,30 +1,34 @@
 /* eslint-disable react/prop-types */
 import { DoctorCard } from "../../Components/DoctorCard";
 import { useContext, useEffect } from "react";
-import axios from "axios";
 import { AppContext } from "../../Context/AppContext";
-import { Backend_Url } from "../../../public/contstant";
+import BaseApi from "../../Service/RequestApi";
 import Loader from "../../Components/Loader";
 export const Doctors = ({ cancel }) => {
   const { Doctorcategory, Doctordata, setDoctordata } = useContext(AppContext);
 
-  useEffect(() => {
-    if (Doctorcategory === "All") {
-      axios.get(`${Backend_Url}/getDoctorlist`).then((res) => {
-        setDoctordata(res.data);
-      });
-    } else {
-      axios.get(`${Backend_Url}/getDoctorlist`).then((res) => {
-        const Doctors = res.data;
-
-        const filterd = Doctors.filter((item) =>
-          item.speciality.toLowerCase().includes(Doctorcategory.toLowerCase())
-        );
-
-        setDoctordata(filterd);
-      });
+  const getAlllistofDoctor = async () => {
+    try {
+      const res = await BaseApi.GetAllDoctorList();
+      const Doctors = res.data;
+      if (res.status == 201) {
+        if (Doctorcategory === "All") {
+          setDoctordata(Doctors);
+        } else {
+          const filterd = Doctors.filter((item) =>
+            item.speciality.toLowerCase().includes(Doctorcategory.toLowerCase())
+          );
+          setDoctordata(filterd);
+        }
+      }
+    } catch (error) {
+      console.log(error);
     }
+  };
+
+  useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    getAlllistofDoctor();
   }, [Doctorcategory]);
 
   return (
