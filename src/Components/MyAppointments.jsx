@@ -6,186 +6,203 @@ import axios from "axios";
 import { Backend_Url } from "../../public/contstant";
 import { toast } from "react-toastify";
 import { useRef } from "react";
+import BaseApi from "../Service/RequestApi";
+import * as React from "react";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  Stack,
+  Avatar,
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import Modal from "@mui/material/Modal";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import Swal from "sweetalert2";
+
 export const MyAppointments = () => {
-  const [Cancel, setCancel] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-
-  const { Time, Date, token, setTime, setDate } = useContext(AppContext);
-
-  const [Appointedid, setAppointedid] = useState([]);
-  // console.log("This is My Appointed Doctors id ", Appointedid?.[0]?.Doctor);
-  const [Currentid, setCurrentid] = useState([]);
-  // console.log("Thevalue of First is ", first);
-
-  // console.log(" This is My allAppointed Doctor id", Appointedid);
+  const { token } = useContext(AppContext);
   const [AppointedDoc, setAppointedDoc] = useState([]);
-  // const AppointedDoc = useRef([]);
-  // console.log(AppointedDoc);
-  // console.log(AppointedDoc?.[0]);
-  // console.log("This is m current Doctor Appointed id ", Appointedid);
-  // console.log("This is My Current Appointed dpoctor", AppointedDoc.length);
-  const AccesAppointedDoctor = () => {
-    axios
-      .get(`${Backend_Url}/AccessAppointedDoctor`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((e) => {
-        if (e.data) {
-          // console.log(e.data);
-          setAppointedid(e.data);
-          setTime(e.data.appointedTime);
-          setDate(e.data.Date);
-        }
-      })
-      .catch((e) => {
-        console.log(e);
-      });
-  };
 
-  const getAppointedDoctorlist = () => {
-    for (let i = 0; i < Appointedid.length; i++) {
-      axios.get(`${Backend_Url}/getDoctorlist`).then((res) => {
-        const Doctordata = res.data;
-        // const Doctors = Doctordata?.filter((doc) =>
-        //   Appointedid?.[0]?.Doctor.includes(doc._id)
-        // );
-        const Doctors = Doctordata?.filter((doc) =>
-          Appointedid.some((appointment) =>
-            appointment?.Doctor.includes(doc._id)
-          )
-        );
-        setAppointedDoc(Doctors);
-        // AppointedDoc.push(Doctors);
-      });
+  const AccesAppointedDoctor = async () => {
+    try {
+      const res = await BaseApi.GetAppointedDoctors();
+      console.log("This is My Responce ", res);
+
+      if (res?.data?.success) {
+        setAppointedDoc(res?.data?.data || []);
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
   useEffect(() => {
     AccesAppointedDoctor();
-    getAppointedDoctorlist();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [Appointedid, Currentid, Cancel]);
+  }, []);
 
-  return (
-    <>
-      <div className={` mt-[8vh]  ${Cancel && " relative "}`}>
-        {/* {AppointedDoc.length === 0 ? (
-          <h1 className=" text-[25px] font-bold text-center">
-            No Doctor Appointed{" "}
-          </h1>
-        ) : (
-          
-        )} */}
-        <>
-          {AppointedDoc.map((doctor, i) => (
-            <div key={i} className="   sm:flex">
-              <div className="  mt-[3vh] sm:m-[3vh]  sm:flex  gap-3 border   w-full  border-slate-400 p-2 rounded-md">
-                <img
-                  src={`${doctor.avtar}`}
-                  alt="Doctorimage"
-                  className="   object-cover  bg-blue-500 sm:max-w-[200px]   rounded-xl p-0  "
-                />
+  const CancelCurrentAppointment = async (Appointedid) => {
+    try {
+      const res = await BaseApi.CancelBookedAppointment(Appointedid);
+      if (res?.status) {
+        Swal.fire({
+          title: "Cancel Appointment!",
+          icon: "success",
+          draggable: true,
+        });
+        AccesAppointedDoctor();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-                <div className="  sm:flex justify-between   w-full">
-                  <div className=" mt-[5vh] sm:mt-[0vh]">
-                    <h1 className=" text-[20px] font-semibold text-red-500">
-                      {doctor.name}
-                    </h1>
-                    <span className=" text-[17px] font-light">
-                      {doctor.speciality}
-                    </span>
-                    <p className=" text-[15px] font-bold">Address :</p>
-                    <p className=" text-[18px font-semibold]">
-                      <span>{doctor.address?.line1}</span>
-                      <span>{doctor.address?.line2}</span>
-                    </p>
-
-                    <p>Date & Time</p>
-                    <span>{Date}</span>
-
-                    <span className="ml-2">{`${doctor.appointmentTime[Time]}`}</span>
-
-                    <p>Fees:</p>
-                    <span>{doctor.doctorFees}rs</span>
-                  </div>
-                  <div className="  mt-[5vh] sm:mt-0 flex   sm:flex-col items-center  justify-center sm:justify-end gap-5">
-                    <button
-                      className=" border border-slate-500 px-3 py-2 w-[150px]"
-                      onClick={() => {
-                        setCancel(!Cancel);
-                        setCurrentid(doctor._id);
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button className=" border border-slate-500 px-3 py-2 w-[150px] bg-blue-500 text-white ">
-                      Pay Here ..
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </>
-      </div>
-
-      {Cancel && (
-        <CancelPopup
-          setCancel={setCancel}
-          Cancel={Cancel}
-          Appointedid={Currentid}
-          token={token}
-          setAppointedid={setCurrentid}
-          setAppointedDoc={setAppointedDoc}
-        />
-      )}
-    </>
-  );
-};
-
-const CancelPopup = ({ setCancel, Appointedid, token, setAppointedid }) => {
-  const deleteteAppointedDoctor = (id) => {
-    axios
-      .delete(`${Backend_Url}/DeletedAppointedDoctor/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((e) => {
-        console.log(e);
-        setCancel(false);
-        setAppointedid([]);
-        if (e.status === 201) {
-          toast.success(`${e.data.message}`, {
-            autoClose: 2000,
-          });
+  const deleteteAppointedDoctor = async (Appointedid) => {
+    try {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You Want to Cancel This Appointment !",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, Cancel it!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          CancelCurrentAppointment(Appointedid);
         }
-      })
-      .catch((e) => {
-        console.log(e);
       });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
     <>
-      <div className=" bg-black  text-white  w-[80%]  m-auto  sm:w-[400px]  absolute  top-[50%]   right-[10%] sm:top-[20%]  sm:right-[40%] p-4  sm:p-10 rounded-lg z-50 flex flex-col justify-center  items-center ">
-        <h1>Are you Sure !! Cancel Appointment</h1>
-        <div>
-          <button
-            className=" bg-red-400 px-3 py-1 rounded-md m-4"
-            onClick={() => {
-              deleteteAppointedDoctor(Appointedid);
-            }}
-          >
-            Yes
-          </button>
-          <button
-            className=" bg-green-400 px-3 py-1 rounded-md"
-            onClick={() => {
-              setCancel(false);
-            }}
-          >
-            Cancel{" "}
-          </button>
-        </div>
+      <div style={{ marginTop: "8vh" }}>
+        <>
+          {AppointedDoc.length > 0 ? (
+            <>
+              {AppointedDoc?.map((doctor, i) => (
+                <Box key={i} display="flex" justifyContent="center" mt={3}>
+                  <Card
+                    sx={{
+                      maxWidth: 1000,
+                      width: "100%",
+                      borderRadius: 3,
+                      boxShadow: 3,
+                    }}
+                  >
+                    <CardContent>
+                      <Stack
+                        direction={{ xs: "column", sm: "row" }}
+                        spacing={3}
+                      >
+                        {/* Doctor Image */}
+                        <Avatar
+                          src={doctor.avtar}
+                          variant="rounded"
+                          sx={{
+                            width: 180,
+                            height: 220,
+                            bgcolor: "#3b82f6",
+                          }}
+                        />
+
+                        {/* Doctor Info */}
+                        <Box flex={1}>
+                          <Typography
+                            variant="h5"
+                            fontWeight="bold"
+                            color="error"
+                          >
+                            {doctor.name}
+                          </Typography>
+
+                          <Typography
+                            variant="subtitle1"
+                            color="text.secondary"
+                          >
+                            {doctor.speciality}
+                          </Typography>
+
+                          <Divider sx={{ my: 1 }} />
+
+                          <Typography fontWeight="bold">Address</Typography>
+                          <Typography>{doctor.addresss}</Typography>
+
+                          <Stack direction="row" spacing={1} mt={1}>
+                            <Typography fontWeight="bold">
+                              Total Appointments:
+                            </Typography>
+                            <Typography fontWeight="bold">
+                              {doctor.appointments.length}
+                            </Typography>
+                          </Stack>
+
+                          {/* Appointments */}
+                          <Box mt={2}>
+                            {doctor.appointments.map((data, index) => (
+                              <Box key={index} mb={1}>
+                                <Typography fontWeight="bold" fontSize={14}>
+                                  Date & Time
+                                </Typography>
+                                <Typography fontSize={14}>
+                                  {data?.Date} — {data.appointedTime}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+
+                          <Box mt={2}>
+                            <Typography fontWeight="bold">Fees</Typography>
+                            <Typography variant="h6" fontWeight="bold">
+                              ₹{doctor.doctorFees}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        {/* Action Buttons */}
+                        <Stack
+                          spacing={2}
+                          justifyContent="flex-end"
+                          alignItems="center"
+                        >
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            sx={{ width: 160 }}
+                            onClick={() => {
+                              deleteteAppointedDoctor(doctor._id);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{ width: 160 }}
+                          >
+                            Pay Now
+                          </Button>
+                        </Stack>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </Box>
+              ))}
+            </>
+          ) : (
+            "Loading ..."
+          )}
+        </>
       </div>
     </>
   );

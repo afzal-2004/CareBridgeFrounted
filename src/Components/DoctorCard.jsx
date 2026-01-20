@@ -8,7 +8,6 @@ import { Backend_Url } from "../../public/contstant";
 import { toast } from "react-toastify";
 export const DoctorCard = ({ data, cancel, Doctorid }) => {
   const DeletedDoctor = (id) => {
-    // console.log(" This is Id ", id);
     axios
       .delete(`${Backend_Url}/deleteDoctor/${id}`)
       .then((e) => {

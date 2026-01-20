@@ -27,7 +27,6 @@ export const Doctors = ({ cancel }) => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     getAlllistofDoctor();
   }, [Doctorcategory]);
 

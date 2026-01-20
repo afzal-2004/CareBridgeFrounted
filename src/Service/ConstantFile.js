@@ -1,4 +1,5 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const isLive = true;
 // const isLive = false;
@@ -13,8 +14,8 @@ export const BASEURL = {
     : `http://localhost:3000/care`,
 };
 
-export const authToken = localStorage.getItem("token");
-
+// const authToken = JSON.parse(localStorage.getItem("token"));
+const authToken = Cookies.get("token");
 const headers = {
   "Content-Type": "application/json",
 };
@@ -44,7 +45,7 @@ http.interceptors.response.use(
       console.log("Error", error.message);
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default http;

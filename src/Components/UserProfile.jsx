@@ -24,11 +24,11 @@ export const UserProfile = () => {
     <>
       {token && (
         <div className=" sm:flex items-center gap-1 hidden ">
-          {Profile.profilePicture ? (
+          {Profile?.profilePicture ? (
             <img src={Profile_pic} alt="" className="w-[50px] rounded-full" />
           ) : (
             <p className="w-[50px]  h-[50px] rounded-full bg-yellow-400 text-black  sm:flex  justify-center items-center text-[20px]  ">
-              {Profile.name?.[0]}
+              {Profile?.name?.[0]}
             </p>
           )}
           <IoIosArrowDown
@@ -126,15 +126,15 @@ export const MyProfile = () => {
   const Profiledata = [
     {
       title: "Name",
-      property: Profile.name,
+      property: Profile?.name,
     },
     {
       title: "Email",
-      property: Profile.email,
+      property: Profile?.email,
     },
     {
       title: "Contact",
-      property: Profile.MobileNumber,
+      property: Profile?.MobileNumber,
     },
   ];
 

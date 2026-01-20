@@ -1,47 +1,45 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { FaArrowRight } from "react-icons/fa6";
 import { FaCircleExclamation } from "react-icons/fa6";
-import { DoctorCard } from "./DoctorCard";
 import { Link } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import { useParams } from "react-router";
-import { Backend_Url } from "../../public/contstant";
+import BaseApi from "../Service/RequestApi";
 export const DoctorDetails = () => {
   const [Doctor, setDoctor] = useState([]);
-  const {
-    RelatedDoctor,
-    setRelatedDoctor,
-    Time,
-    setTime,
-    Date,
-    setDate,
-    token,
-    addDoctorAppointment,
-  } = useContext(AppContext);
+  const { token, addDoctorAppointment } = useContext(AppContext);
 
   const { id } = useParams();
-  // console.log("This is The the id if seected Doctor ", id);
+  const [SelectedDate, setSelectedDate] = useState("");
+  const [AppointmnetTime, setAppointmnetTime] = useState("");
+
+  const getDoctorById = async () => {
+    try {
+      const res = await BaseApi.GetDoctorDetailsById(id);
+      if (res?.data?.Data?.status) {
+        setDoctor(res?.data?.Data?.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
-    axios.get(`${Backend_Url}/getDoctorlist`).then((res) => {
-      const Doctordata = res.data;
-      const DoctorDetail = Doctordata?.find((doc) => doc._id === id);
-      setDoctor(DoctorDetail);
-      console.log("I want to the details of this doctor ", DoctorDetail);
-      const Specility = DoctorDetail.speciality;
-      const filterd = Doctordata.filter(
-        (item) =>
-          item.speciality.toLowerCase().includes(Specility.toLowerCase()) &&
-          item._id !== id
-      );
-
-      setRelatedDoctor(filterd);
-      setDoctor(DoctorDetail);
-    });
+    getDoctorById();
   }, [id]);
+  // const now = new Date();
+  // const Today = now.toLocaleDateString();
+  const today = new Date().toISOString().split("T")[0];
+  useEffect(() => {
+    setSelectedDate(today);
+  }, []);
+  useEffect(() => {
+    if (Doctor?.appointmentTime?.length > 0) {
+      setAppointmnetTime(Doctor.appointmentTime[0]);
+    }
+  }, [Doctor]);
 
   return (
     <>
@@ -84,9 +82,11 @@ export const DoctorDetails = () => {
                   type="date"
                   name=""
                   id=""
+                  min={today}
+                  value={SelectedDate}
                   className="p-1"
                   onChange={(e) => {
-                    setDate(e.target.value);
+                    setSelectedDate(e.target.value);
                   }}
                 />
                 <span className="text-[15px] text-red-500 flex items-center gap-1">
@@ -99,17 +99,13 @@ export const DoctorDetails = () => {
                 {Doctor?.appointmentTime?.map((time, i) => (
                   <div
                     className={`border border-gray-400 py-2   px-3 rounded-2xl sm:min-w-[150px] min-w-[100px] text-center ${
-                      Time === i && "bg-blue-500 text-white"
+                      AppointmnetTime == time && "bg-blue-500 text-white"
                     }`}
                     key={i}
                   >
                     <span
                       onClick={() => {
-                        setTime(i);
-                        console.log(
-                          " User Select This  time for doctor meeting ",
-                          time
-                        );
+                        setAppointmnetTime(time);
                       }}
                     >
                       {time}
@@ -131,39 +127,25 @@ export const DoctorDetails = () => {
                     <FaArrowRight />
                   </button>
                 ) : (
-                  <Link to={"/Appointments"}>
-                    <button
-                      className="m-[5vh] border bg-blue-500 rounded-3xl text-white p-4 sm:text-[18px] text-[15px] gap-3 flex items-center"
-                      onClick={() => addDoctorAppointment(id)}
-                    >
-                      Book an appointment
-                      <FaArrowRight />
-                    </button>
-                  </Link>
+                  <button
+                    className="m-[5vh] border bg-blue-500 rounded-3xl text-white p-4 sm:text-[18px] text-[15px] gap-3 flex items-center"
+                    value={SelectedDate}
+                    onClick={() =>
+                      addDoctorAppointment(
+                        Doctor?._id,
+                        SelectedDate,
+                        AppointmnetTime,
+                      )
+                    }
+                  >
+                    Book an appointment
+                    <FaArrowRight />
+                  </button>
                 )}
               </div>
             </div>
           </div>
         </main>
-
-        <footer className="m-[5vh]">
-          <h1 className=" text-center font-semibold  sm:text-[25px] text-[20px] m-[3vh]">
-            {" "}
-            Related Doctors
-          </h1>
-          <div
-            className="flex flex-wrap  gap-6 justify-center
-           "
-          >
-            {RelatedDoctor.map((data, i) => (
-              <div key={i} className="flex max-w-[25]">
-                <Link to={`/allDoctors/${data._id}`}>
-                  <DoctorCard data={data} />
-                </Link>
-              </div>
-            ))}
-          </div>
-        </footer>
       </section>
     </>
   );

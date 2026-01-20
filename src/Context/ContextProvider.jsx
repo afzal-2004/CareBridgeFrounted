@@ -6,75 +6,71 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Backend_Url } from "../../public/contstant";
+import BaseApi from "../Service/RequestApi";
 import Cookies from "js-cookie";
 export const ContextProvider = ({ children }) => {
   const token = Cookies.get("token");
   const [Opennav, setOpenNav] = useState(false);
-  const [RelatedDoctor, setRelatedDoctor] = useState([]);
-  const [Time, setTime] = useState(0);
-  const [Date, setDate] = useState("");
   const [Doctorcategory, setDoctorcategory] = useState("All");
   const [Profile, setProfile] = useState([]);
   const [Doctordata, setDoctordata] = useState([]);
-
+  const [AppointedDoctor, setAppointedDoctor] = useState([]);
   const [data, setdata] = useState({
     emailOrMobile: "",
-    //moa44468@gmail.com
     Password: "",
-    // 123456
   });
 
+  const ProfileData = async () => {
+    try {
+      const res = await BaseApi.GetCustomerprofiledata();
+      console.log("This is My User profile data ", res);
+      if (res.status == 201) {
+        const profileData = res?.data?.FindUser;
+        localStorage.setItem("UserProfile", JSON.stringify(profileData));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+   
+  };
   useEffect(() => {
     if (token) {
       ProfileData();
+      const UserProfileData = JSON.parse(localStorage.getItem("UserProfile"));
+      setProfile(UserProfileData);
     }
   }, [token]);
-
-  const ProfileData = () => {
-    axios
-      .get(`${Backend_Url}/Userprofile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setProfile(response.data?.FindUser);
-      })
-      .catch((error) => {
-        console.log("Error fetching profile:", error);
-      });
-  };
 
   useEffect(() => {
     setDoctorcategory("");
   }, []);
 
-  const addDoctorAppointment = (doctorId) => {
-    axios
-      .post(
-        `${Backend_Url}/AppointedDoctor/${doctorId}`,
-        {
-          date: Date,
-          appointedTime: Time,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      .then((e) => {
-        console.log(e);
-        toast.success(e.data?.message);
-      })
-      .catch((e) => console.log(e));
+  const addDoctorAppointment = async (
+    doctorId,
+    SelectedDate,
+    AppointmnetTime,
+  ) => {
+    const payload = {
+      date: SelectedDate,
+      appointedTime: AppointmnetTime,
+    };
+    try {
+      const res = await BaseApi.BookAppointment(doctorId, payload);
+      console.log("This is Booking Responce ", res);
+      if (res?.status == 200) {
+        setAppointedDoctor(res.data?.Appointdoctor);
+        toast.success("Doctor Appointed SucesFully", {
+          autoClose: 2000,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const value = {
     Opennav,
     setOpenNav,
-    RelatedDoctor,
-    setRelatedDoctor,
-    Time,
-    setTime,
-    Date,
-    setDate,
     data,
     setdata,
     Profile,

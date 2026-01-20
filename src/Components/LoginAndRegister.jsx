@@ -147,9 +147,7 @@ export const Login = () => {
         Cookies.set("token", Token, { expires: 1 });
         toast.success(`${res.data?.message}`);
         setProfile(res.data.finduser);
-        localStorage.setItem("userdata", JSON.stringify(res.data.finduser));
-        localStorage.setItem("token", JSON.stringify(Token));
-
+        localStorage.setItem("userdata", JSON.stringify(res.data.safeUser));
         setTimeout(() => {
           navigate("/");
         }, 1000);
