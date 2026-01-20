@@ -26,5 +26,13 @@ class BaseApi {
   CancelBookedAppointment(id) {
     return http.delete(`/DeletedAppointedDoctor/${id}`);
   }
+  CreateOrder(payload) {
+    return http.post(`/create-order`, payload);
+  }
+  ToCheckPaymentStatus(payload) {
+    return http.post(`verify-payment`, payload);
+  }
+
+  // http://localhost:5000/api/payment/create-order
 }
 export default new BaseApi();

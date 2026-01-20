@@ -25,6 +25,7 @@ import {
 import Modal from "@mui/material/Modal";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import Swal from "sweetalert2";
+import { RAJOR_PAY_KEY } from "../Service/ConstantFile";
 
 export const MyAppointments = () => {
   const { token } = useContext(AppContext);
@@ -46,6 +47,51 @@ export const MyAppointments = () => {
   useEffect(() => {
     AccesAppointedDoctor();
   }, []);
+
+  const loadScript = (src) => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const loadRazorpay = async (Amount) => {
+    const isLoaded = await loadScript(
+      "https://checkout.razorpay.com/v1/checkout.js",
+    );
+
+    if (!isLoaded) {
+      alert("Razorpay SDK failed to load.");
+      return;
+    }
+
+    const payload = { amount: Amount };
+    const res = await BaseApi.CreateOrder(payload);
+    const data = res?.data?.order;
+
+    const options = {
+      key: RAJOR_PAY_KEY,
+      amount: data?.amount,
+      currency: "INR",
+      name: "Doctor Appointment",
+      order_id: data?.id,
+      handler: async function (response) {
+        console.log("Payment Response:", response);
+        const payload = {
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+        };
+        await BaseApi.ToCheckPaymentStatus(payload);
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  };
 
   const CancelCurrentAppointment = async (Appointedid) => {
     try {
@@ -189,6 +235,7 @@ export const MyAppointments = () => {
                             variant="contained"
                             color="primary"
                             sx={{ width: 160 }}
+                            onClick={() => loadRazorpay(doctor.doctorFees*doctor.appointments.length)}
                           >
                             Pay Now
                           </Button>

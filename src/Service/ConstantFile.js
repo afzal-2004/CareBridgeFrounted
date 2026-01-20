@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -5,8 +6,8 @@ const isLive = true;
 // const isLive = false;
 
 export const RAJOR_PAY_KEY = isLive
-  ? "rzp_test_Rwv1PJDCR9D3lB"
-  : "rzp_test_Rwv1PJDCR9D3lB";
+  ? import.meta.env.VITE_RAZORPAY_KEY_TEST
+  : import.meta.env.VITE_RAZORPAY_KEY_TEST;
 
 export const BASEURL = {
   ENDPOINT_URL: isLive
